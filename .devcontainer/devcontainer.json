@@ -1,0 +1,12 @@
+{
+	"image": "ghcr.io/esphome/esphome",
+	"customizations": {
+		"vscode": {
+			"extensions": [
+				"EditorConfig.EditorConfig",
+				"biomejs.biome",
+				"ESPHome.esphome-vscode"
+			]
+		}
+	}
+}

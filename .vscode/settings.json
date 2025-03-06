@@ -1,0 +1,12 @@
+{
+  "[esphome]": {
+    "editor.defaultFormatter": "redhat.vscode-yaml",
+  },
+  "[yaml]": {
+    "editor.defaultFormatter": "redhat.vscode-yaml",
+  },
+  "files.associations": {
+    "secrets*.yaml": "yaml",
+    "*.yaml": "esphome"
+  }
+}

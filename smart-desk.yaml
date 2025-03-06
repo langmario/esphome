@@ -5,7 +5,7 @@ esphome:
 
 external_components:
   source: github://iMicknl/LoctekMotion_IoT@v2
-  components: [ loctekmotion_desk_height ]
+  components: [loctekmotion_desk_height]
 
 esp32:
   board: wemos_d1_mini32
@@ -49,21 +49,21 @@ sensor:
     id: "desk_height"
     name: Desk Height
     on_value_range:
-    - below: ${min_height}
-      then:
-        - switch.turn_off: switch_down
-    - above: ${max_height}
-      then:
-        - switch.turn_off: switch_up
+      - below: ${min_height}
+        then:
+          - switch.turn_off: switch_down
+      - above: ${max_height}
+        then:
+          - switch.turn_off: switch_up
     on_value:
       then:
         - cover.template.publish:
             id: desk_cover
             position: !lambda |-
-                // The sensor outputs values from min_height (cm) to max_height (cm)
-                // We need to translate this to 0 - 1 scale.
-                float position = (float(x) - float(${min_height})) / (float(${max_height}) - float(${min_height}));
-                return position;
+              // The sensor outputs values from min_height (cm) to max_height (cm)
+              // We need to translate this to 0 - 1 scale.
+              float position = (float(x) - float(${min_height})) / (float(${max_height}) - float(${min_height}));
+              return position;
         - component.update: set_desk_height
 
 switch:

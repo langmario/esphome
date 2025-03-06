@@ -9,8 +9,8 @@ esp8266:
 # Enable logging
 logger:
   logs:
-      # Make adc input less verbose
-      adc: INFO
+    # Make adc input less verbose
+    adc: INFO
 
 # Enable Home Assistant API
 api:
@@ -43,7 +43,7 @@ sensor:
     on_value:
       if:
         condition:
-          lambda: 'return x < 0.2;'
+          lambda: "return x < 0.2;"
         then:
           - binary_sensor.template.publish:
               id: led_sensor
@@ -121,7 +121,7 @@ output:
     write_action:
       if:
         condition:
-          lambda: 'return state < 0.1;'
+          lambda: "return state < 0.1;"
         then:
           - output.turn_off: gpio_d4
           - output.turn_off: gpio_d3
@@ -129,27 +129,27 @@ output:
         else:
           - if:
               condition:
-                lambda: 'return state < 0.4;'
+                lambda: "return state < 0.4;"
               then:
-                - output.turn_on:  gpio_d4
+                - output.turn_on: gpio_d4
                 - output.turn_off: gpio_d3
                 - output.turn_off: gpio_d2
               else:
                 - if:
                     condition:
-                      lambda: 'return state < 0.7;'
+                      lambda: "return state < 0.7;"
                     then:
                       - output.turn_off: gpio_d4
-                      - output.turn_on:  gpio_d3
+                      - output.turn_on: gpio_d3
                       - output.turn_off: gpio_d2
                     else:
                       - output.turn_off: gpio_d4
                       - output.turn_off: gpio_d3
-                      - output.turn_on:  gpio_d2
+                      - output.turn_on: gpio_d2
 
 fan:
- - platform: speed
-   output: fan_out_internal
-   id: fan_internal
-   name: "Fan"
-   speed_count: 3
+  - platform: speed
+    output: fan_out_internal
+    id: fan_internal
+    name: "Fan"
+    speed_count: 3

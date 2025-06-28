@@ -1,7 +1,40 @@
 esphome:
-  name: office-airpurifier
-  friendly_name: Office AirPurifier
-  area: Office
+  name: airpurifier
+  friendly_name: Air Purifier
+  name_add_mac_suffix: True
+  on_boot:
+    priority: 800
+    then:
+      - delay: 250ms
+      - if:
+          condition:
+            binary_sensor.is_on: in_d1
+          then:
+            - fan.turn_off: fan_internal
+          else:
+            - if:
+                condition:
+                  binary_sensor.is_on: in_d5
+                then:
+                  - fan.turn_on:
+                      id: fan_internal
+                      speed: 1
+                else:
+                  - if:
+                      condition:
+                        binary_sensor.is_on: in_d6
+                      then:
+                        - fan.turn_on:
+                            id: fan_internal
+                            speed: 2
+                      else:
+                        - if:
+                            condition:
+                              binary_sensor.is_on: in_d7
+                            then:
+                              - fan.turn_on:
+                                  id: fan_internal
+                                  speed: 3
 
 esp8266:
   board: d1_mini
@@ -27,8 +60,6 @@ wifi:
   ap:
     ssid: "Office-Airpurifier"
     password: "ixiXvxthEx4m"
-
-captive_portal:
 
 sensor:
   # Read LED from adc input 10 times per second

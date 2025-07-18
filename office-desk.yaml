@@ -4,11 +4,10 @@ esphome:
   area: Office
   name_add_mac_suffix: True
 
-esp32:
-  board: wemos_d1_mini32
-  framework:
-    type: arduino
+esp8266:
+  board: d1_mini
 
+captive_portal:
 logger:
 api:
 
@@ -21,14 +20,72 @@ wifi:
   password: !secret wifi_password
   fast_connect: True
 
+button:
+  - platform: restart
+    name: "Restart"
+
+sensor:
+  - platform: wifi_signal
+    name: "WiFi Signal"
+    update_interval: 60s
+
 binary_sensor:
+  # Hardware button on GPIO
   - platform: gpio
-    id: button
-    filters:
-      - delayed_on: 10ms
-      - delayed_off: 10ms
+    id: hw_button
+    internal: True
     pin:
       number: D4
       mode:
-        input: True
-        pullup: True
+        input: true
+        pullup: true
+      inverted: true
+    filters:
+      - delayed_on: 10ms
+      - delayed_off: 10ms
+    on_multi_click:
+      - timing:
+          - ON for at most 350ms
+          - OFF for at least 300ms
+        then:
+          - binary_sensor.template.publish:
+              id: single_press
+              state: ON
+          - delay: 100ms
+          - binary_sensor.template.publish:
+              id: single_press
+              state: OFF
+      - timing:
+          - ON for at most 350ms
+          - OFF for at most 300ms
+          - ON for at most 350ms
+        then:
+          - binary_sensor.template.publish:
+              id: double_press
+              state: ON
+          - delay: 100ms
+          - binary_sensor.template.publish:
+              id: double_press
+              state: OFF
+      - timing:
+          - ON for at least 700ms
+        then:
+          - binary_sensor.template.publish:
+              id: long_press
+              state: ON
+          - delay: 100ms
+          - binary_sensor.template.publish:
+              id: long_press
+              state: OFF
+
+
+  # Triggerable sensors exposed to Home Assistant for device triggers
+  - platform: template
+    name: "Single press"
+    id: single_press
+  - platform: template
+    name: "Double press"
+    id: double_press
+  - platform: template
+    name: "Long press"
+    id: long_press

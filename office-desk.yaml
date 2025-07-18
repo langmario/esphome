@@ -7,7 +7,6 @@ esphome:
 esp8266:
   board: d1_mini
 
-captive_portal:
 logger:
 api:
 
@@ -27,6 +26,9 @@ button:
 sensor:
   - platform: wifi_signal
     name: "WiFi Signal"
+    update_interval: 60s
+  - platform: uptime
+    name: "ESP Uptime"
     update_interval: 60s
 
 binary_sensor:

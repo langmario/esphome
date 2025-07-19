@@ -53,7 +53,7 @@ binary_sensor:
           - binary_sensor.template.publish:
               id: single_press
               state: ON
-          - delay: 100ms
+          - delay: 200ms
           - binary_sensor.template.publish:
               id: single_press
               state: OFF
@@ -65,7 +65,7 @@ binary_sensor:
           - binary_sensor.template.publish:
               id: double_press
               state: ON
-          - delay: 100ms
+          - delay: 200ms
           - binary_sensor.template.publish:
               id: double_press
               state: OFF
@@ -75,7 +75,7 @@ binary_sensor:
           - binary_sensor.template.publish:
               id: long_press
               state: ON
-          - delay: 100ms
+          - delay: 200ms
           - binary_sensor.template.publish:
               id: long_press
               state: OFF

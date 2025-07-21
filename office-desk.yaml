@@ -47,7 +47,7 @@ binary_sensor:
       - delayed_off: 10ms
     on_multi_click:
       - timing:
-          - ON for at most 350ms
+          - ON for at most 300ms
           - OFF for at least 300ms
         then:
           - binary_sensor.template.publish:
@@ -58,9 +58,9 @@ binary_sensor:
               id: single_press
               state: OFF
       - timing:
-          - ON for at most 350ms
+          - ON for at most 300ms
           - OFF for at most 300ms
-          - ON for at most 350ms
+          - ON for at most 300ms
         then:
           - binary_sensor.template.publish:
               id: double_press
@@ -70,7 +70,19 @@ binary_sensor:
               id: double_press
               state: OFF
       - timing:
-          - ON for at least 700ms
+          - ON for at most 300ms
+          - OFF for at most 300ms
+          - ON for at least 500ms
+        then:
+          - binary_sensor.template.publish:
+              id: short_long_press
+              state: ON
+          - delay: 200ms
+          - binary_sensor.template.publish:
+              id: short_long_press
+              state: OFF
+      - timing:
+          - ON for at least 500ms
         then:
           - binary_sensor.template.publish:
               id: long_press
@@ -88,6 +100,9 @@ binary_sensor:
   - platform: template
     name: "Double press"
     id: double_press
+  - platform: template
+    name: "Short + long press"
+    id: short_long_press
   - platform: template
     name: "Long press"
     id: long_press

@@ -31,6 +31,17 @@ sensor:
     name: "ESP Uptime"
     update_interval: 60s
 
+event:
+  - platform: template
+    name: Button
+    id: button_event
+    device_class: button
+    event_types:
+      - short
+      - double
+      - long
+      - short_long
+
 binary_sensor:
   # Hardware button on GPIO
   - platform: gpio
@@ -46,63 +57,37 @@ binary_sensor:
       - delayed_on: 10ms
       - delayed_off: 10ms
     on_multi_click:
+      # Single Short Click
       - timing:
-          - ON for at most 300ms
+          - ON for at most 750ms
           - OFF for at least 300ms
         then:
-          - binary_sensor.template.publish:
-              id: single_press
-              state: ON
-          - delay: 200ms
-          - binary_sensor.template.publish:
-              id: single_press
-              state: OFF
+          - event.trigger:
+              id: button_event
+              event_type: short
+      # Double Click: two quick presses
       - timing:
-          - ON for at most 300ms
+          - ON for at most 750ms
           - OFF for at most 300ms
-          - ON for at most 300ms
+          - ON for at most 750ms
+          - OFF for at least 300ms
         then:
-          - binary_sensor.template.publish:
-              id: double_press
-              state: ON
-          - delay: 200ms
-          - binary_sensor.template.publish:
-              id: double_press
-              state: OFF
+          - event.trigger:
+              id: button_event
+              event_type: double
+      # Short then Long: first short, then long press
       - timing:
-          - ON for at most 300ms
+          - ON for at most 750ms
           - OFF for at most 300ms
-          - ON for at least 500ms
+          - ON for at least 750ms
         then:
-          - binary_sensor.template.publish:
-              id: short_long_press
-              state: ON
-          - delay: 200ms
-          - binary_sensor.template.publish:
-              id: short_long_press
-              state: OFF
+          - event.trigger:
+              id: button_event
+              event_type: short_long
+      # Long Press
       - timing:
-          - ON for at least 500ms
+          - ON for at least 750ms
         then:
-          - binary_sensor.template.publish:
-              id: long_press
-              state: ON
-          - delay: 200ms
-          - binary_sensor.template.publish:
-              id: long_press
-              state: OFF
-
-
-  # Triggerable sensors exposed to Home Assistant for device triggers
-  - platform: template
-    name: "Single press"
-    id: single_press
-  - platform: template
-    name: "Double press"
-    id: double_press
-  - platform: template
-    name: "Short + long press"
-    id: short_long_press
-  - platform: template
-    name: "Long press"
-    id: long_press
+          - event.trigger:
+              id: button_event
+              event_type: long

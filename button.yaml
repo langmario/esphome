@@ -35,6 +35,17 @@ sensor:
     name: "ESP Uptime"
     update_interval: 60s
 
+event:
+  - platform: template
+    name: Event
+    id: button_event
+    device_class: button
+    event_types:
+      - short
+      - double
+      - long
+      - short_long
+
 binary_sensor:
   # Hardware button on GPIO
   - platform: gpio
@@ -54,61 +65,32 @@ binary_sensor:
           - ON for at most 300ms
           - OFF for at least 300ms
         then:
-          - binary_sensor.template.publish:
-              id: single_press
-              state: ON
-          - delay: 200ms
-          - binary_sensor.template.publish:
-              id: single_press
-              state: OFF
+          - event.trigger:
+              id: button_event
+              event_type: short
       - timing:
           - ON for at most 300ms
           - OFF for at most 300ms
           - ON for at most 300ms
+          - OFF for at least 300ms
         then:
-          - binary_sensor.template.publish:
-              id: double_press
-              state: ON
-          - delay: 200ms
-          - binary_sensor.template.publish:
-              id: double_press
-              state: OFF
+          - event.trigger:
+              id: button_event
+              event_type: double
       - timing:
           - ON for at most 300ms
           - OFF for at most 300ms
           - ON for at least 500ms
         then:
-          - binary_sensor.template.publish:
-              id: short_long_press
-              state: ON
-          - delay: 200ms
-          - binary_sensor.template.publish:
-              id: short_long_press
-              state: OFF
+          - event.trigger:
+              id: button_event
+              event_type: short_long
       - timing:
           - ON for at least 500ms
         then:
-          - binary_sensor.template.publish:
-              id: long_press
-              state: ON
-          - delay: 200ms
-          - binary_sensor.template.publish:
-              id: long_press
-              state: OFF
-
-  # Triggerable sensors exposed to Home Assistant for device triggers
-  - platform: template
-    name: "Single press"
-    id: single_press
-  - platform: template
-    name: "Double press"
-    id: double_press
-  - platform: template
-    name: "Short + long press"
-    id: short_long_press
-  - platform: template
-    name: "Long press"
-    id: long_press
+          - event.trigger:
+              id: button_event
+              event_type: long
 
 output:
   - platform: ledc
@@ -129,4 +111,4 @@ light:
     green: led_green
     red: led_red
     default_transition_length:
-      milliseconds: 200
+      milliseconds: 100

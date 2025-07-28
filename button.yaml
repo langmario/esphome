@@ -61,32 +61,39 @@ binary_sensor:
       - delayed_on: 10ms
       - delayed_off: 10ms
     on_multi_click:
+      # Single Short Click
       - timing:
-          - ON for at most 300ms
+          - ON for at most 750ms
           - OFF for at least 300ms
         then:
           - event.trigger:
               id: button_event
               event_type: short
+
+      # Double Click: two quick presses
       - timing:
-          - ON for at most 300ms
+          - ON for at most 750ms
           - OFF for at most 300ms
-          - ON for at most 300ms
+          - ON for at most 750ms
           - OFF for at least 300ms
         then:
           - event.trigger:
               id: button_event
               event_type: double
+
+      # Short then Long: first short, then long press
       - timing:
-          - ON for at most 300ms
+          - ON for at most 750ms
           - OFF for at most 300ms
-          - ON for at least 500ms
+          - ON for at least 750ms
         then:
           - event.trigger:
               id: button_event
               event_type: short_long
+
+      # Long Press only
       - timing:
-          - ON for at least 500ms
+          - ON for at least 750ms
         then:
           - event.trigger:
               id: button_event

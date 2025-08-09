@@ -1,0 +1,70 @@
+esphome:
+  name: clock
+  friendly_name: Clock
+  name_add_mac_suffix: True
+
+esp8266:
+  board: d1_mini
+
+logger:
+api:
+
+ota:
+  - platform: esphome
+    password: !secret ota_password
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+  fast_connect: True
+  ap:
+    ssid: "Clock Fallback Hotspot"
+    password: jU8HcV42
+
+button:
+  - platform: restart
+    name: "Restart"
+
+sensor:
+  - platform: wifi_signal
+    name: "WiFi Signal"
+    update_interval: 60s
+  - platform: uptime
+    name: "ESP Uptime"
+    type: timestamp
+    time_id: source_time
+
+text_sensor:
+  - platform: wifi_info
+    ip_address:
+      name: IP Address
+
+switch:
+  - platform: template
+    name: "Night Mode"
+    id: night_mode
+    optimistic: True
+
+font:
+  - file: fonts/5x8.bdf
+    id: font_large
+
+time:
+  - platform: sntp
+    timezone: Europe/Berlin
+    id: source_time
+
+spi:
+  clk_pin: D6
+  mosi_pin: D8
+
+display:
+  - platform: max7219digit
+    id: max_display
+    cs_pin: D7
+    num_chips: 4
+    update_interval: 1s
+    lambda: |-
+      bool night = id(night_mode).state;
+      it.intensity(night ? 0 : 15);
+      it.strftime(4, 0, id(font_large), "%H:%M", id(source_time).now());

@@ -7,6 +7,9 @@ esphome:
 esp8266:
   board: d1_mini
 
+packages:
+  - !include common/device_base.yaml
+
 logger:
 api:
 
@@ -18,18 +21,6 @@ wifi:
   ssid: !secret wifi_ssid
   password: !secret wifi_password
   fast_connect: True
-
-button:
-  - platform: restart
-    name: "Restart"
-
-sensor:
-  - platform: wifi_signal
-    name: "WiFi Signal"
-    update_interval: 60s
-  - platform: uptime
-    name: "ESP Uptime"
-    update_interval: 60s
 
 event:
   - platform: template

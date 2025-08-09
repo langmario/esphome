@@ -1,0 +1,72 @@
+esphome:
+  name: smart-meter
+  friendly_name: Smart Meter
+  name_add_mac_suffix: True
+
+packages: !include common/device_base.yaml
+
+esp8266:
+  board: d1_mini
+
+logger:
+  baud_rate: 0
+  logs:
+    uart: DEBUG
+    sml: DEBUG
+api:
+
+ota:
+  - platform: esphome
+    password: !secret ota_password
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+  ap:
+    ssid: "Smart Meter Fallback Hotspot"
+
+sensor:
+  - platform: sml
+    name: "Total Energy Consumed"
+    obis_code: "1-0:1.8.0"
+    unit_of_measurement: "kWh"
+    accuracy_decimals: 1
+    device_class: energy
+    state_class: total_increasing
+    filters:
+      - multiply: 0.0001
+  - platform: sml
+    name: "Total Energy Delivered"
+    obis_code: "1-0:2.8.0"
+    unit_of_measurement: "kWh"
+    accuracy_decimals: 1
+    device_class: energy
+    state_class: total_increasing
+    filters:
+      - multiply: 0.0001
+  - platform: sml
+    name: "Current Power"
+    obis_code: "1-0:16.7.0"
+    unit_of_measurement: W
+    accuracy_decimals: 0
+    device_class: power
+    state_class: measurement
+
+switch:
+  - platform: gpio
+    pin:
+      number: LED
+      inverted: True
+    id: led
+    name: LED
+
+uart:
+  id: uart_main
+  tx_pin: TX
+  rx_pin: RX
+  baud_rate: 9600
+  debug:
+
+sml:
+  uart_id: uart_main
+  id: sml_main

@@ -1,0 +1,31 @@
+time:
+  - platform: homeassistant
+    id: time_ha
+
+binary_sensor:
+  - platform: status
+    name: Online
+    id: ink_ha_connected
+    entity_category: diagnostic
+
+sensor:
+  - platform: uptime
+    name: Uptime
+    type: timestamp
+    time_id: time_ha
+    entity_category: diagnostic
+  - platform: wifi_signal
+    name: RSSI
+    update_interval: 60s
+    entity_category: diagnostic
+
+button:
+  - platform: restart
+    icon: mdi:power-cycle
+    name: ESP Reboot
+    entity_category: diagnostic
+
+text_sensor:
+  - platform: wifi_info
+    ip_address:
+      name: IP Address

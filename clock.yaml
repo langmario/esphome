@@ -6,7 +6,7 @@ esphome:
 esp8266:
   board: d1_mini
 
-logger:
+packages: !include common/base.yaml
 api:
 
 ota:
@@ -20,24 +20,6 @@ wifi:
   ap:
     ssid: "Clock Fallback Hotspot"
     password: jU8HcV42
-
-button:
-  - platform: restart
-    name: "Restart"
-
-sensor:
-  - platform: wifi_signal
-    name: "WiFi Signal"
-    update_interval: 60s
-  - platform: uptime
-    name: "ESP Uptime"
-    type: timestamp
-    time_id: source_time
-
-text_sensor:
-  - platform: wifi_info
-    ip_address:
-      name: IP Address
 
 switch:
   - platform: template

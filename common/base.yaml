@@ -26,8 +26,9 @@ button:
     name: ESP Reboot
     entity_category: diagnostic
   - platform: template
-    device_class: identify
+    id: identify
     name: Identify
+    device_class: identify
     entity_category: diagnostic
     on_press:
       then:

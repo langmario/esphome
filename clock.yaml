@@ -21,10 +21,16 @@ wifi:
     ssid: Clock Fallback Hotspot
     password: jU8HcV42
 
+globals:
+  - id: identify_active
+    type: bool
+    initial_value: 'false'
+
 switch:
   - platform: template
     name: Night Mode
     id: night_mode
+    icon: mdi:weather-night
     optimistic: True
 
 font:
@@ -45,8 +51,30 @@ display:
     id: max_display
     cs_pin: D7
     num_chips: 4
-    update_interval: 1s
+    update_interval: 20ms
     lambda: |-
       bool night = id(night_mode).state;
       it.intensity(night ? 0 : 15);
-      it.strftime(4, 0, id(font_large), "%H:%M", id(source_time).now());
+      if (id(identify_active)) {
+        it.filled_rectangle(0, 0, 32, 8);
+      } else {
+        auto t = id(source_time).now();
+        bool showColon = t.second % 2 == 0 || night;
+        it.strftime(4, 0, id(font_large), showColon ? "%H:%M" : "%H %M", t);
+      }
+
+button:
+  - id: !remove identify
+  - platform: template
+    name: Identify
+    device_class: identify
+    entity_category: diagnostic
+    on_press:
+      then:
+        - globals.set:
+            id: identify_active
+            value: 'true'
+        - delay: 5s
+        - globals.set:
+            id: identify_active
+            value: 'false'

@@ -1,6 +1,7 @@
 time:
   - platform: homeassistant
     id: time_ha
+    timezone: CET-1CEST,M3.5.0,M10.5.0/3
 
 binary_sensor:
   - platform: status
@@ -24,6 +25,24 @@ button:
     icon: mdi:power-cycle
     name: ESP Reboot
     entity_category: diagnostic
+  - platform: template
+    device_class: identify
+    name: Identify
+    entity_category: diagnostic
+    on_press:
+      then:
+        - repeat:
+            count: 10
+            then:
+              - output.turn_on: status_led
+              - delay: 100ms
+              - output.turn_off: status_led
+              - delay: 100ms
+
+output:
+  - platform: gpio
+    pin: GPIO2
+    id: status_led
 
 text_sensor:
   - platform: wifi_info

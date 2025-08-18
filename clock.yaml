@@ -8,6 +8,7 @@ esp8266:
 
 packages: !include common/base.yaml
 api:
+captive_portal:
 
 ota:
   - platform: esphome
@@ -19,7 +20,6 @@ wifi:
   fast_connect: True
   ap:
     ssid: Clock Fallback Hotspot
-    password: jU8HcV42
 
 globals:
   - id: identify_active
@@ -64,7 +64,6 @@ display:
       }
 
 button:
-  - id: !remove identify
   - platform: template
     name: Identify
     device_class: identify

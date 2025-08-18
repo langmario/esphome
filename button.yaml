@@ -10,6 +10,7 @@ esp32:
 
 packages: !include common/base.yaml
 api:
+captive_portal:
 
 ota:
   - platform: esphome

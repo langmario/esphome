@@ -43,6 +43,7 @@ packages: !include common/base.yaml
 
 # Enable Home Assistant API
 api:
+captive_portal:
 
 ota:
   - platform: esphome

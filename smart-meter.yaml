@@ -24,11 +24,11 @@ wifi:
   ssid: !secret wifi_ssid
   password: !secret wifi_password
   ap:
-    ssid: "Smart Meter Fallback Hotspot"
+    ssid: Smart Meter Fallback Hotspot
 
 sensor:
   - platform: sml
-    name: "Total Energy Consumed"
+    name: Total Energy Consumed
     obis_code: "1-0:1.8.0"
     unit_of_measurement: "kWh"
     accuracy_decimals: 1
@@ -37,29 +37,21 @@ sensor:
     filters:
       - multiply: 0.0001
   - platform: sml
-    name: "Total Energy Delivered"
-    obis_code: "1-0:2.8.0"
-    unit_of_measurement: "kWh"
+    name: Total Energy Delivered
+    obis_code: 1-0:2.8.0
+    unit_of_measurement: kWh
     accuracy_decimals: 1
     device_class: energy
     state_class: total_increasing
     filters:
       - multiply: 0.0001
   - platform: sml
-    name: "Current Power"
-    obis_code: "1-0:16.7.0"
+    name: Current Power
+    obis_code: 1-0:16.7.0
     unit_of_measurement: W
     accuracy_decimals: 0
     device_class: power
     state_class: measurement
-
-switch:
-  - platform: gpio
-    pin:
-      number: LED
-      inverted: True
-    id: led
-    name: LED
 
 uart:
   id: uart_main

@@ -25,25 +25,6 @@ button:
     icon: mdi:power-cycle
     name: ESP Reboot
     entity_category: diagnostic
-  - platform: template
-    id: identify
-    name: Identify
-    device_class: identify
-    entity_category: diagnostic
-    on_press:
-      then:
-        - repeat:
-            count: 10
-            then:
-              - output.turn_on: status_led
-              - delay: 100ms
-              - output.turn_off: status_led
-              - delay: 100ms
-
-output:
-  - platform: gpio
-    pin: GPIO2
-    id: status_led
 
 text_sensor:
   - platform: wifi_info

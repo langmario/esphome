@@ -52,6 +52,10 @@ sensor:
     accuracy_decimals: 0
     device_class: power
     state_class: measurement
+    filters:
+      - or:
+          - throttle_average: 5s
+          - delta: 5%
 
 uart:
   id: uart_main

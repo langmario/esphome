@@ -25,6 +25,7 @@ wifi:
   password: !secret wifi_password
   ap:
     ssid: Smart Meter Fallback Hotspot
+  fast_connect: True
 
 sensor:
   - platform: sml
@@ -44,9 +45,7 @@ sensor:
     device_class: power
     state_class: measurement
     filters:
-      - or:
-          - throttle_average: 5s
-          - delta: 5%
+      - throttle_average: 2s
 
 uart:
   id: uart_main

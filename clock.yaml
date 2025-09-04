@@ -8,6 +8,17 @@ esp8266:
 
 packages: !include common/base.yaml
 api:
+  services:
+    - service: timer_start
+      variables:
+        seconds: int
+      then:
+        - lambda: |-
+            id(timer_seconds_remaining) = seconds;
+    - service: timer_abort
+      then:
+        - lambda: |-
+            id(timer_seconds_remaining) = 0;
 captive_portal:
 
 ota:
@@ -24,7 +35,18 @@ wifi:
 globals:
   - id: identify_active
     type: bool
-    initial_value: 'false'
+  - id: timer_seconds_remaining
+    type: int
+
+interval:
+  - interval: 1s
+    then:
+      - if:
+          condition:
+            lambda: return id(timer_seconds_remaining) > 0;
+          then:
+            - lambda: |-
+                id(timer_seconds_remaining)--;
 
 switch:
   - platform: template
@@ -57,6 +79,10 @@ display:
       it.intensity(night ? 0 : 15);
       if (id(identify_active)) {
         it.filled_rectangle(0, 0, 32, 8);
+      } else if (id(timer_seconds_remaining) > 0) {
+        int minutes = id(timer_seconds_remaining) / 60;
+        int seconds = id(timer_seconds_remaining) % 60;
+        it.printf(4, 0, id(font_large), "%02d:%02d", minutes, seconds);
       } else {
         auto t = id(source_time).now();
         bool showColon = t.second % 2 == 0 || night;

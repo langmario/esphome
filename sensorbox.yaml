@@ -1,0 +1,285 @@
+# Sensorbox v2 config for PCB SBR1
+# config r2 (20241130)
+# https://go.toms3d.org/sbr1
+# Leave the "substitutions" block in place, then add this config.
+# You can choose a new "friendly name" in the substitutions, this will be its display name in Home Assistant.
+
+esphome:
+  name: sensorbox
+  friendly_name: Sensorbox
+  min_version: 2024.6.0
+  name_add_mac_suffix: true
+  platformio_options:
+    board_build.flash_mode: dio
+  project:
+    name: esphome.web
+    version: dev
+
+esp32:
+  board: esp32-s2-saola-1
+  framework:
+    type: arduino
+# Enable logging
+logger:
+
+# Enable Home Assistant API and failsafe mechanisms
+api:
+
+# Allow Over-The-Air updates
+ota:
+- platform: esphome
+
+# Allow provisioning Wi-Fi via serial
+improv_serial:
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+
+  # Enable fallback hotspot (captive portal) in case wifi connection fails, using your wifi's password
+  ap:
+    ssid: "Sensorbox v2"
+
+# In combination with the `ap` this allows the user
+# to provision wifi credentials to the device via WiFi AP.
+captive_portal:
+
+dashboard_import:
+  package_import_url: github://esphome/firmware/esphome-web/esp32s2.yaml@main
+  import_full_config: true
+
+# To have a "next url" for improv serial
+web_server:
+
+debug:
+  update_interval: 5s
+
+uart:
+  - tx_pin: GPIO10
+    rx_pin: GPIO09
+    baud_rate: 9600
+    id: uart_ze08
+    parity: none
+    data_bits: 8
+    stop_bits: 1
+    debug:
+      direction: BOTH
+      dummy_receiver: true
+      after:
+        # bytes: 9
+        timeout: 10ms
+      sequence:
+        - lambda: |-
+            //UARTDebug::log_int(direction, bytes, ',');                 // Log the message as int.
+            //UARTDebug::log_hex(direction, bytes, ',');                 // Log the message in hex.
+            ESP_LOGD("custom", "Bytes size: %d", bytes.size());
+            if (direction == UART_DIRECTION_RX)
+              {
+                  if (bytes.size() == 9)
+                    {
+                        if ( bytes[0] == 0xFF &&                       // Check sensor identification
+                            bytes[1] == 0x17
+                            )
+                          {
+                            float value = float((bytes[4] * 256) + bytes[5]);  // Decode message
+                            id(ch2o_ze08).publish_state(value);     // Publish results to a sensor.
+                          }
+                    }
+              }
+
+  - tx_pin: GPIO08
+    rx_pin: GPIO07
+    baud_rate: 9600
+    id: uart_pms
+
+spi:
+  clk_pin: GPIO01
+  mosi_pin: GPIO02
+  miso_pin: GPIO16
+
+i2c:
+  - sda: GPIO11
+    scl: GPIO12
+    scan: true
+    id: i2c_main
+
+  - sda: GPIO17
+    scl: GPIO18
+    scan: true
+    id: i2c_2
+
+sensor:
+  - platform: template
+    name: "ZE08 CH2O"
+    unit_of_measurement: ppb
+    state_class: measurement
+    device_class: volatile_organic_compounds
+    id: ch2o_ze08
+    filters:
+      - filter_out: 2000.0
+      - exponential_moving_average:
+          send_every: 1
+          alpha: 0.5
+
+  - platform: uptime
+    name: "Uptime"
+    id: uptime_sensor
+    update_interval: 5s
+    disabled_by_default: True
+
+  - platform: debug
+    free:
+      name: "Heap Free"
+      id: heap_free
+      disabled_by_default: True
+    loop_time:
+      name: "Loop Time"
+      id: loop_time
+      disabled_by_default: True
+
+  - platform: aht10
+    #address: 0x38
+    i2c_id: i2c_main
+    variant: AHT20
+    temperature:
+      name: "AHT20 Temperature"
+      id: temp_aht20
+    humidity:
+      name: "AHT20 Humidity"
+      id: hum_aht20
+    update_interval: 10s
+
+  - platform: bmp280_i2c
+    address: 0x77
+    i2c_id: i2c_main
+    temperature:
+      name: "BMP280 Temperature"
+      id: temp_bmp280
+      oversampling: 16x
+    pressure:
+      name: "BMP280 Pressure"
+      id: pres_bmp280
+    update_interval: 10s
+
+
+  - platform: sht4x
+    #addr 0x44
+    i2c_id: i2c_main
+    temperature:
+      name: "SHT40 Temperature"
+      id: temp_sht40
+    humidity:
+      name: "SHT40 Relative Humidity"
+      id: hum_sht40
+    update_interval: 10s
+
+  - platform: scd4x
+    #address: 0x62
+    i2c_id: i2c_main
+    co2:
+      name: "SCD40 CO2"
+      id: co2_scd40
+    temperature:
+      name: "SCD40 Temperature"
+      id: temp_scd40
+    humidity:
+      name: "SCD40 Humidity"
+      id: hum_scd40
+    update_interval: 30s
+
+  - platform: ens160_i2c
+    address: 0x53
+    i2c_id: i2c_2
+    eco2:
+      name: "ENS160 eCO2"
+      id: eco2_ens160
+    tvoc:
+      name: "ENS160 TVOC"
+      id: tvoc_ens160
+      filters:
+        - exponential_moving_average:
+            send_every: 1
+            alpha: 0.5
+    aqi:
+      name: "ENS160 Air Quality Index"
+      id: aqi_ens160
+    update_interval: 10s
+    compensation:
+      temperature: temp_aht20_ens
+      humidity: hum_aht20_ens
+
+  - platform: aht10
+    #address: 0x38
+    i2c_id: i2c_2
+    variant: AHT20
+    temperature:
+      name: "AHT20/ENS160 Temperature"
+      id: temp_aht20_ens
+      disabled_by_default: True
+    humidity:
+      name: "AHT20/ENS160 Humidity"
+      id: hum_aht20_ens
+      disabled_by_default: True
+    update_interval: 10s
+
+  - platform: sgp30
+    i2c_id: i2c_main
+    address: 0x58
+    eco2:
+      name: "SGP30 eCO2"
+      id: eco2_sgp30
+      accuracy_decimals: 0
+      filters:
+        - exponential_moving_average:
+            send_every: 1
+            alpha: 0.2
+    tvoc:
+      name: "SGP30 TVOC"
+      id: tvoc_sgp30
+      accuracy_decimals: 1
+      filters:
+        - exponential_moving_average:
+            send_every: 1
+            alpha: 0.2
+    store_baseline: yes
+    update_interval: 5s
+    compensation:
+      humidity_source: hum_aht20
+      temperature_source: temp_aht20
+
+  - platform: sgp4x
+    i2c_id: i2c_main
+    #address: 0x59
+    voc:
+      name: "SGP41 VOC Index"
+      id: aqi_voc_sgp41
+      icon: "mdi:air-filter"
+      device_class: aqi
+      state_class: measurement
+      unit_of_measurement: "index points"
+    nox:
+      name: "SGP41 NOx Index"
+      id: aqi_nox_sgp41
+      icon: "mdi:air-filter"
+      device_class: aqi
+      state_class: measurement
+      unit_of_measurement: "index points"
+    compensation:
+      humidity_source: hum_aht20
+      temperature_source: temp_aht20
+    store_baseline: True
+    update_interval: 10s
+
+  - platform: pmsx003
+    type: PMSX003
+    update_interval: 120s
+    uart_id: uart_pms
+    pm_1_0:
+      name: "PMS Particulate Matter <1.0µm Concentration"
+      id: pm1_pms
+    pm_2_5:
+      name: "PMS Particulate Matter <2.5µm Concentration"
+      id: pm25_pms
+    pm_10_0:
+      name: "PMS Particulate Matter <10.0µm Concentration"
+      id: pm10_pms

@@ -10,6 +10,9 @@ esp32:
   board: esp32-s2-saola-1
   framework:
     type: esp-idf
+
+packages: !include common/base.yaml
+
 # Enable logging
 logger:
 
@@ -34,10 +37,6 @@ wifi:
 # In combination with the `ap` this allows the user
 # to provision wifi credentials to the device via WiFi AP.
 captive_portal:
-
-dashboard_import:
-  package_import_url: github://esphome/firmware/esphome-web/esp32s2.yaml@main
-  import_full_config: true
 
 # To have a "next url" for improv serial
 web_server:
@@ -75,22 +74,6 @@ i2c:
     id: i2c_2
 
 sensor:
-  - platform: uptime
-    name: "Uptime"
-    id: uptime_sensor
-    update_interval: 5s
-    disabled_by_default: True
-
-  - platform: debug
-    free:
-      name: "Heap Free"
-      id: heap_free
-      disabled_by_default: True
-    loop_time:
-      name: "Loop Time"
-      id: loop_time
-      disabled_by_default: True
-
   - platform: aht10
     #address: 0x38
     i2c_id: i2c_main

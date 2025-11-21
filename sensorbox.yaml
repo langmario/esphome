@@ -144,6 +144,7 @@ sensor:
     name: "Temperature"
     device_class: "temperature"
     state_class: "measurement"
+    unit_of_measurement: "°C"
     update_interval: 10s
     lambda: |-
       float temps[6] = {
@@ -165,6 +166,7 @@ sensor:
     name: "Humidity"
     device_class: "humidity"
     state_class: "measurement"
+    unit_of_measurement: "%"
     update_interval: 10s
     lambda: |-
       float hums[4] = {
@@ -221,9 +223,11 @@ sensor:
     temperature:
       name: "SHT40 Temperature"
       id: temp_sht40
+      disabled_by_default: True
     humidity:
       name: "SHT40 Relative Humidity"
       id: hum_sht40
+      disabled_by_default: True
     update_interval: 10s
 
   - platform: scd4x
@@ -235,9 +239,11 @@ sensor:
     temperature:
       name: "SCD40 Temperature"
       id: temp_scd40
+      disabled_by_default: True
     humidity:
       name: "SCD40 Humidity"
       id: hum_scd40
+      disabled_by_default: True
     update_interval: 30s
 
   - platform: ens160_i2c
@@ -246,9 +252,11 @@ sensor:
     eco2:
       name: "ENS160 eCO2"
       id: eco2_ens160
+      disabled_by_default: True
     tvoc:
       name: "ENS160 TVOC"
       id: tvoc_ens160
+      disabled_by_default: True
       filters:
         - exponential_moving_average:
             send_every: 1
@@ -256,6 +264,7 @@ sensor:
     aqi:
       name: "ENS160 Air Quality Index"
       id: aqi_ens160
+      disabled_by_default: True
     update_interval: 10s
     compensation:
       temperature: temp_aht20_ens
@@ -310,6 +319,7 @@ sensor:
       device_class: aqi
       state_class: measurement
       unit_of_measurement: "index points"
+      disabled_by_default: True
     nox:
       name: "SGP41 NOx Index"
       id: aqi_nox_sgp41
@@ -317,6 +327,7 @@ sensor:
       device_class: aqi
       state_class: measurement
       unit_of_measurement: "index points"
+      disabled_by_default: True
     compensation:
       humidity_source: hum_aht20
       temperature_source: temp_aht20
@@ -330,12 +341,15 @@ sensor:
     pm_1_0:
       name: "PMS Particulate Matter <1.0µm Concentration"
       id: pm1_pms
+      disabled_by_default: True
     pm_2_5:
       name: "PMS Particulate Matter <2.5µm Concentration"
       id: pm25_pms
+      disabled_by_default: True
     pm_10_0:
       name: "PMS Particulate Matter <10.0µm Concentration"
       id: pm10_pms
+      disabled_by_default: True
 #endregion SENSORS
 
 #region DISPLAY
@@ -770,11 +784,9 @@ display:
 
           cy += 88;
         }
-
         // END PARTICLES
 
         // PREPARE CO2
-
         if (!isnan(co2) or !isnan(e_co2) or !isnan(s_co2)) {
           count = 0;
           title = "CO2";

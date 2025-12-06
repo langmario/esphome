@@ -25,12 +25,7 @@ wifi:
   ap:
     ssid: "Sensorbox"
 captive_portal:
-
-# To have a "next url" for improv serial
 web_server:
-
-debug:
-  update_interval: 5s
 
 uart:
   - tx_pin: GPIO10
@@ -40,25 +35,6 @@ uart:
     parity: none
     data_bits: 8
     stop_bits: 1
-    debug:
-      direction: BOTH
-      dummy_receiver: true
-      after:
-        # bytes: 9
-        timeout: 10ms
-      sequence:
-        lambda: |-
-          ESP_LOGD("custom", "Bytes size: %d", bytes.size());
-          // UARTDebug::log_int(direction, bytes, ',');             // Log the message as int.
-          // UARTDebug::log_hex(direction, bytes, ',');             // Log the message in hex.
-          if (direction == UART_DIRECTION_RX) {
-            if (bytes.size() == 9) {
-              if (bytes[0] == 0xFF && bytes[1] == 0x17) {
-                float value = float((bytes[4] * 256) + bytes[5]);  // Decode message
-                id(ch2o_ze08).publish_state(value);                // Publish results to a sensor.
-              }
-            }
-          }
   - tx_pin: GPIO08
     rx_pin: GPIO07
     baud_rate: 9600
@@ -90,8 +66,8 @@ binary_sensor:
       inverted: true
     id: top_btn
     filters:
-      - delayed_on: 20ms
-      - delayed_off: 20ms
+      - delayed_on: 10ms
+      - delayed_off: 10ms
     on_click:
       then:
         - lambda: |-
@@ -107,19 +83,6 @@ binary_sensor:
             }
 
 sensor:
-  - platform: template
-    name: "ZE08 CH2O"
-    unit_of_measurement: ppb
-    state_class: measurement
-    device_class: volatile_organic_compounds
-    id: ch2o_ze08
-    update_interval: 5s
-    internal: True
-    filters:
-      - filter_out: 2000.0
-      - exponential_moving_average:
-          send_every: 1
-          alpha: 0.5
   - platform: aht10
     #address: 0x38
     i2c_id: i2c_main
@@ -131,7 +94,6 @@ sensor:
       name: "Humidity"
       id: hum_aht20
     update_interval: 10s
-
   - platform: bmp280_i2c
     address: 0x77
     i2c_id: i2c_main
@@ -144,7 +106,6 @@ sensor:
       name: "Pressure"
       id: pres_bmp280
     update_interval: 10s
-
   - platform: scd4x
     #address: 0x62
     i2c_id: i2c_main
@@ -159,46 +120,7 @@ sensor:
       name: "SCD40 Humidity"
       id: hum_scd40
       internal: True
-    update_interval: 30s
-
-  - platform: ens160_i2c
-    address: 0x53
-    i2c_id: i2c_2
-    eco2:
-      name: "eCO2"
-      id: eco2_ens160
-      internal: True
-    tvoc:
-      name: "ENS160 TVOC"
-      id: tvoc_ens160
-      internal: True
-      filters:
-        - exponential_moving_average:
-            send_every: 1
-            alpha: 0.5
-    aqi:
-      name: "ENS160 Air Quality Index"
-      id: aqi_ens160
-      internal: True
     update_interval: 10s
-    compensation:
-      temperature: temp_aht20_ens
-      humidity: hum_aht20_ens
-
-  - platform: aht10
-    #address: 0x38
-    i2c_id: i2c_2
-    variant: AHT20
-    temperature:
-      name: "AHT20/ENS160 Temperature"
-      id: temp_aht20_ens
-      internal: True
-    humidity:
-      name: "AHT20/ENS160 Humidity"
-      id: hum_aht20_ens
-      internal: True
-    update_interval: 10s
-
   - platform: sgp30
     i2c_id: i2c_main
     address: 0x58
@@ -221,104 +143,61 @@ sensor:
             send_every: 1
             alpha: 0.2
     store_baseline: yes
-    update_interval: 5s
-    compensation:
-      humidity_source: hum_aht20
-      temperature_source: temp_aht20
-
-  - platform: sgp4x
-    i2c_id: i2c_main
-    #address: 0x59
-    voc:
-      name: "VOC Index"
-      id: aqi_voc_sgp41
-      icon: "mdi:air-filter"
-      device_class: aqi
-      state_class: measurement
-      unit_of_measurement: "index points"
-      internal: True
-    nox:
-      name: "NOx Index"
-      id: aqi_nox_sgp41
-      icon: "mdi:air-filter"
-      device_class: aqi
-      state_class: measurement
-      unit_of_measurement: "index points"
-      internal: True
-    compensation:
-      humidity_source: hum_aht20
-      temperature_source: temp_aht20
-    store_baseline: True
     update_interval: 10s
-
-  - platform: pmsx003
-    type: PMSX003
-    update_interval: 120s
-    uart_id: uart_pms
-    pm_1_0:
-      name: "PM1.0"
-      id: pm1_pms
-    pm_2_5:
-      name: "PM2.5"
-      id: pm25_pms
-    pm_10_0:
-      name: "PM10.0"
-      id: pm10_pms
+    compensation:
+      humidity_source: hum_aht20
+      temperature_source: temp_aht20
 #endregion SENSORS
 
-#region DISPLAY
+#region DISPLAY SETUP
 color:
   - id: white
     hex: FFFFFF
-  - id: grey
+  - id: gray
     hex: AAAAAA
-  - id: light_grey
+  - id: light_gray
     hex: CCCCCC
-  - id: yellow
-    hex: FFFA72
-  - id: orange
-    hex: FF9C32
-  - id: red
-    hex: FF1616
-  - id: purple
-    hex: FF16e0
-  - id: blue
-    hex: 0000FF
+  - id: dark_gray
+    hex: 555555
   - id: green
-    hex: 00FF00
-  - id: cyan
-    hex: 00FFFF
-  - id: magenta
-    hex: FF00FF
+    hex: 80FF70
+  - id: lime
+    hex: C3FF60
+  - id: yellow
+    hex: FFE040
+  - id: orange
+    hex: FF993D
+  - id: red
+    hex: FF3333
 
 font:
-  - file: "gfonts://Rubik@300"
-    id: font_label_14
+  - file: "gfonts://Rubik@400"
+    id: font_labels
     size: 14
     bpp: 4
     glyphs: [
       "0","1","2","3","4","5","6","7","8","9", "µ", "³",  "/", "°", "%", ",", ".", "(", ")", "-", "_", ":", A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z," ",a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z
       ]
-  - file: "gfonts://Rubik@300"
-    id: font_label_18
-    size: 18
-    bpp: 4
-    glyphs: [
-      "0","1","2","3","4","5","6","7","8","9", "µ", "³",  "/", "°", "%", ",", ".", "(", ")", "-", "_", ":", A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z," ",a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z
-      ]
   - file: "gfonts://Rubik@400"
-    id: font_value_30
-    size: 30
+    id: font_aside
+    size: 24
     bpp: 4
     glyphs: [
-      "0","1","2","3","4","5","6","7","8","9", ".", "-"
+      "0","1","2","3","4","5","6","7","8","9",".","-"
       ]
-  - file: "gfonts://Orbitron"
-    id: font_heading_36
-    size: 36
+  - file: "gfonts://Rubik@600"
+    id: font_values
+    size: 60
     bpp: 4
     glyphs: [
-      "2",A,C,F,I,O,P,V,W,a,c,e,i,l,r,s,t," "
+      "0","1","2","3","4","5","6","7","8","9",".","-"
+      ]
+  - file: "gfonts://Orbitron@500"
+    id: font_headings
+    size: 26
+    bpp: 4
+    glyphs: [
+      " ","2",A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z,a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z
       ]
 
 psram:
@@ -336,269 +215,74 @@ light:
     name: "Display"
     id: back_light
     restore_mode: ALWAYS_ON
+#endregion DISPLAY SETUP
 
+#region DISPLAY
 display:
   - platform: ili9xxx
     model: ILI9341
     cs_pin: GPIO03
     dc_pin: GPIO04
     reset_pin: GPIO06
-    #data_rate: 10MHz
     transform:
-      #mirror_x: true
       mirror_y: true
-    #show_test_card: true
-    color_order: bgr # CHANGE THIS if your screen has colors mapped wrong
+    color_order: bgr
     invert_colors: false
     color_palette: 8BIT
     lambda: |-
       it.fill(Color::BLACK);
 
-      auto fv30 = id(font_value_30);
-      auto fh36 = id(font_heading_36);
-      auto fl14 = id(font_label_14);
-      auto fl18 = id(font_label_18);
-
       auto w = it.get_width();
       auto h = it.get_height();
+      auto offset_x = 10;
+      auto offset_y = 10;
 
+      // Get sensor values
+      float temperature = id(temp_aht20).state;
+      float humidity = id(hum_aht20).state;
       float pressure = id(pres_bmp280).state;
+      auto co2 = id(co2_scd40).state;
+      auto voc = id(tvoc_sgp30).state;
 
-      if (isnan(pressure)) {
-        pressure = 0;
-      }
+      // Set current color for sensor values based on thresholds
+      auto color_co2 = id(green);
+      if (co2 >  600) color_co2 = id(lime);
+      if (co2 >  800) color_co2 = id(yellow);
+      if (co2 > 1100) color_co2 = id(orange);
+      if (co2 > 1400) color_co2 = id(red);
 
-      auto cy = 0; // current Y position
-      auto ix = 0; // current X grid position
+      auto color_voc = id(green);
+      if (voc >  200) color_voc = id(lime);
+      if (voc >  600) color_voc = id(yellow);
+      if (voc > 1000) color_voc = id(orange);
+      if (voc > 1500) color_voc = id(red);
 
-      // GET SENSOR STATES
-      auto col     = id(white);
+      auto cy = 0;
 
-      auto co2     = id(co2_scd40).state;
-      auto e_co2   = id(eco2_ens160).state;
-      auto s_co2   = id(eco2_sgp30).state;
-      auto ch2o    = id(ch2o_ze08).state;
-      auto e_voc   = id(tvoc_ens160).state;
-      auto s_voc   = id(tvoc_sgp30).state;
-      auto pm1     = id(pm1_pms).state;
-      auto pm25    = id(pm25_pms).state;
-      auto pm10    = id(pm10_pms).state;
-      auto aqi_voc = id(aqi_voc_sgp41).state;
-      auto aqi_nox = id(aqi_nox_sgp41).state;
+      // Draw top row with temp, hum, pressure
+      it.printf( 60, 24, id(font_aside), gray, TextAlign::BOTTOM_RIGHT, "%.1f", temperature);
+      it.printf( 63, 14, id(font_labels), dark_gray, TextAlign::BOTTOM_LEFT, "°C");
 
-      // SET COLOR FOR EACH READING
+      it.printf(125, 24, id(font_aside), gray, TextAlign::BOTTOM_RIGHT, "%.0f", humidity);
+      it.printf(127, 14, id(font_labels), dark_gray, TextAlign::BOTTOM_LEFT, "%c", '%');
 
-      col = id(white);
-      if (co2 >  800) { col = id(yellow); }
-      if (co2 > 1200) { col = id(orange); }
-      if (co2 > 1500) { col = id(red);    }
-      if (co2 > 1800) { col = id(purple); }
-      auto co2_c = col;
+      it.printf(205, 24, id(font_aside), gray, TextAlign::BOTTOM_RIGHT, "%.0f", pressure);
+      it.printf(210, 14, id(font_labels), dark_gray, TextAlign::BOTTOM_LEFT, "hPa");
+      cy += 26;
 
-      col = id(white);
-      if (e_co2 >  800) { col = id(yellow); }
-      if (e_co2 > 1200) { col = id(orange); }
-      if (e_co2 > 1500) { col = id(red);    }
-      if (e_co2 > 1800) { col = id(purple); }
-      auto e_co2_c = col;
+      // Draw rows with air quality readings
+      auto draw_row = [&](int &cy, const char* title, const char* unit, const char* format, float value, const Color &value_color) {
+        it.line(0, cy, w, cy, dark_gray);
+        cy += offset_y;
+        it.print(offset_x, cy - 8, id(font_headings), light_gray, TextAlign::TOP_LEFT, title);
+        it.print(w - offset_x, cy + 6, id(font_labels), gray, TextAlign::TOP_RIGHT, unit);
+        it.printf(w - offset_x, cy + 16, id(font_values), value_color, TextAlign::TOP_RIGHT, format, value);
+        cy += 74 + offset_y;
+      };
 
-      col = id(white);
-      if (s_co2 >  800) { col = id(yellow); }
-      if (s_co2 > 1200) { col = id(orange); }
-      if (s_co2 > 1500) { col = id(red);    }
-      if (s_co2 > 1800) { col = id(purple); }
-      auto s_co2_c = col;
-
-      col = id(white);
-      if (ch2o >  60) { col = id(yellow); }
-      if (ch2o > 100) { col = id(orange); }
-      if (ch2o > 150) { col = id(red);    }
-      if (ch2o > 200) { col = id(purple); }
-      auto ch2o_c = col;
-
-      col = id(white);
-      if (e_voc >  400) {col = id(yellow); }
-      if (e_voc >  800) {col = id(orange); }
-      if (e_voc > 1400) {col = id(red);    }
-      if (e_voc > 2000) {col = id(purple); }
-      auto e_voc_c = col;
-
-      col = id(white);
-      if (s_voc >  300) {col = id(yellow); }
-      if (s_voc >  600) {col = id(orange); }
-      if (s_voc > 1000) {col = id(red);    }
-      if (s_voc > 1500) {col = id(purple); }
-      auto s_voc_c = col;
-
-      col = id(white);
-      if (pm1 >  5) {col = id(yellow); }
-      if (pm1 > 10) {col = id(orange); }
-      if (pm1 > 15) {col = id(red);    }
-      if (pm1 > 25) {col = id(purple); }
-      auto pm1_c = col;
-
-      col = id(white);
-      if (pm25 >  5) {col = id(yellow); }
-      if (pm25 > 10) {col = id(orange); }
-      if (pm25 > 15) {col = id(red);    }
-      if (pm25 > 25) {col = id(purple); }
-      auto pm25_c = col;
-
-      col = id(white);
-      if (pm10 > 15) {col = id(yellow); }
-      if (pm10 > 45) {col = id(orange); }
-      if (pm10 > 60) {col = id(red);    }
-      if (pm10 > 80) {col = id(purple); }
-      auto pm10_c = col;
-
-      // DRAW TEMPERATURE HUMIDITY and PRESSURE
-      it.printf( 75, 18, fl14, id(grey), TextAlign::BOTTOM_LEFT,  "°C"            );
-      it.printf( 75, 34, fv30, white,    TextAlign::BOTTOM_RIGHT, "%.1f", id(temp_aht20).state    );
-
-      it.printf(125, 18, fl14, id(grey), TextAlign::BOTTOM_LEFT,  "RH"            );
-      it.printf(125, 30, fl14, id(grey), TextAlign::BOTTOM_LEFT,  "%c", '%'       );
-      it.printf(125, 34, fv30, white,    TextAlign::BOTTOM_RIGHT, "%.0f", id(hum_aht20).state     );
-
-      it.printf(215, 18, fl14, id(grey), TextAlign::BOTTOM_LEFT,  "hPa"           );
-      it.printf(215, 34, fv30, white,    TextAlign::BOTTOM_RIGHT, "%.0f", pressure);
-
-      // PREPARE VARIABLES
-      auto title = "";
-      auto unit  = "";
-      int  count = 0;
-      const char    *names[3];
-      float          values[3];
-      esphome::Color colors[3];
-
-      // PREPARE PARTICLES
-      cy = 30;
-
-      if (!isnan(pm1)) {
-        count     = 0;
-        title     = "Particles";
-        unit      = "µg/m³";
-        names[0]  = "PM1";
-        names[1]  = "PM2.5";
-        names[2]  = "PM10"; //god C++ sucks
-        values[0] = pm1;
-        values[1] = pm25;
-        values[2] = pm10;
-        colors[0] = pm1_c;
-        colors[1] = pm25_c;
-        colors[2] = pm10_c;
-
-        // START REUSABLE
-        it.line(0, cy, w, cy, id(white));
-
-        it.print(    2, cy + 22, fh36, id(light_grey), TextAlign::CENTER_LEFT,  title);
-        it.print(w - 2, cy + 31, fl14, id(grey),       TextAlign::CENTER_RIGHT, unit );
-
-        ix = 0;
-        for (int i = 0; i < 3; i++) {
-          if(isnan(values[i])) continue;
-          it.printf(w / 6 * (1 + ix * 2), cy + 58, fl14, id(grey),  TextAlign::BOTTOM_CENTER, "%s",   names[i] );
-          it.printf(w / 6 * (1 + ix * 2), cy + 50, fv30, colors[i], TextAlign::TOP_CENTER,    "%.0f", values[i]);
-          ix++;
-        }
-        // END REUSABLE
-
-        cy += 88;
-        }
-        // END PARTICLES
-
-        // PREPARE CO2
-        if (!isnan(co2) or !isnan(e_co2) or !isnan(s_co2)) {
-          count = 0;
-          title = "CO2";
-          unit = "ppm";
-          names[0] = "SCD40";
-          names[1] = "ENS160 est.";
-          names[2] = "SGP30 est.";
-          values[0] = co2;
-          values[1] = e_co2;
-          values[2] = s_co2;
-          colors[0] = co2_c;
-          colors[1] = e_co2_c;
-          colors[2] = s_co2_c;
-
-
-          // START REUSABLE
-          it.line(0,cy,w,cy,id(white));
-          it.print(  2, cy + 22, fh36, id(light_grey), TextAlign::CENTER_LEFT,  title);
-          it.print(w-2, cy + 31, fl14, id(grey),       TextAlign::CENTER_RIGHT, unit );
-          ix = 0;
-          for (int i = 0; i < 3; i++) {
-            if(isnan(values[i])) continue;
-            it.printf(w / 6 * (1 + ix * 2), cy + 58, fl14, id(grey),  TextAlign::BOTTOM_CENTER, "%s", names[i] );
-            it.printf(w / 6 * (1 + ix * 2), cy + 50, fv30, colors[i], TextAlign::TOP_CENTER, "%.0f",  values[i]);
-            ix++;
-          }
-          // END REUSABLE
-
-          cy += 88;
-        }
-
-        // END CO2
-
-        // PREPARE VOC
-
-        bool draw_general_voc = (!isnan(ch2o) or !isnan(e_voc) or !isnan(s_voc));
-        bool draw_sgp4x = (!isnan(aqi_voc) or !isnan(aqi_nox));
-        if (draw_general_voc or draw_sgp4x) {
-          count = 0;
-          title = "VOC";
-          unit = "ppb";
-          names[0] = "SGP30";
-          names[1] = "ENS160";
-          names[2] = "ZE08-CH2O";
-          values[0] = s_voc;
-          values[1] = e_voc;
-          values[2] = ch2o;
-          colors[0] = s_voc_c;
-          colors[1] = e_voc_c;
-          colors[2] = ch2o_c;
-
-          // START REUSABLE | UNIT CONDITION ADDED
-          it.line(0, cy, w, cy, id(white));
-          it.print(2, cy + 22, fh36, id(light_grey), TextAlign::CENTER_LEFT, title);
-          if (draw_general_voc) {
-            it.print(w - 2, cy + 31, fl14, id(grey), TextAlign::CENTER_RIGHT, unit);
-          }
-          ix = 0;
-          for (int i = 0; i < 3; i++) {
-            if(isnan(values[i])) continue;
-            it.printf(w / 6 * (1 + ix * 2), cy + 58, fl14, id(grey),  TextAlign::BOTTOM_CENTER, "%s",   names[i] );
-            it.printf(w / 6 * (1 + ix * 2), cy + 50, fv30, colors[i], TextAlign::TOP_CENTER,    "%.0f", values[i]);
-            ix++;
-          }
-          // END REUSABLE
-
-          if (draw_general_voc) {
-            cy += 88;
-          } else {
-            cy += 46;
-          }
-        }
-
-        // START SGP4x
-        cy+=2;
-        auto sgp4x = "SGP41";
-        if (isnan(aqi_nox)) sgp4x = "SGP40";
-        if(!isnan(aqi_voc)) {
-          col = id(white);
-          it.printf(  2, cy, fl14, id(grey), TextAlign::CENTER_LEFT,  "%s VOC Index", sgp4x  );
-          it.printf(180, cy, fl14, id(grey), TextAlign::CENTER_LEFT,  "(1 ... 500)"          );
-          it.printf(180, cy, fl14, col,      TextAlign::CENTER_RIGHT, "%.0f ",        aqi_voc);
-          cy+=15;
-        }
-
-        if(!isnan(aqi_nox)) {
-          col = id(white);
-          it.printf(  2, cy, fl14, id(grey), TextAlign::CENTER_LEFT,  "%s NOx Index", sgp4x  );
-          it.printf(180, cy, fl14, id(grey), TextAlign::CENTER_LEFT,  "(1 ... 500)"          );
-          it.printf(180, cy, fl14, col,      TextAlign::CENTER_RIGHT, "%.0f ",        aqi_nox);
-        }
-        // END VOC & SGP4x
+      draw_row(cy, "CO2", "ppm", "%.0f", co2, color_co2);
+      draw_row(cy, "VOC", "ppb", "%.0f", voc, color_voc);
+      draw_row(cy, "Temp", "°C", "%.1f", temperature, white);
     dimensions:
       height: 320
       width: 240

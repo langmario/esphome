@@ -4,12 +4,13 @@ esphome:
   name_add_mac_suffix: True
 
 esp32:
-  board: esp32-c3-devkitc-02
+  board: seeed_xiao_esp32c3
   framework:
     type: esp-idf
 
 packages: !include common/base.yaml
 api:
+logger:
 captive_portal:
 
 ota:
@@ -34,6 +35,29 @@ event:
       - long
       - short_long
 
+output:
+  - platform: ledc
+    id: buzzer_output
+    pin: GPIO2
+    max_power: 0.1
+
+script:
+  - id: buzzer_alarm
+    then:
+      - repeat:
+          count: 4
+          then:
+            - output.turn_on: buzzer_output
+            - delay: 400ms
+            - output.turn_off: buzzer_output
+            - delay: 400ms
+button:
+  - platform: template
+    name: Trigger Alarm
+    on_press:
+      then:
+        - script.execute: buzzer_alarm
+
 binary_sensor:
   # Hardware button on GPIO
   - platform: gpio
@@ -43,8 +67,8 @@ binary_sensor:
       number: 3
       mode:
         input: true
-        pullup: true
-      inverted: true
+        pulldown: true
+      inverted: false
     filters:
       - delayed_on: 10ms
       - delayed_off: 10ms

@@ -24,7 +24,7 @@ wifi:
 
 event:
   - platform: template
-    name: Event
+    name: Button
     id: button_event
     device_class: button
     event_types:

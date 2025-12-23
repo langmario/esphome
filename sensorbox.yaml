@@ -169,6 +169,8 @@ color:
     hex: FF993D
   - id: red
     hex: FF3333
+  - id: purple
+    hex: FF33DD
 
 font:
   - file: "gfonts://Rubik@400"
@@ -245,17 +247,21 @@ display:
       auto voc = id(tvoc_sgp30).state;
 
       // Set current color for sensor values based on thresholds
-      auto color_co2 = id(green);
-      if (co2 >  600) color_co2 = id(lime);
-      if (co2 >  800) color_co2 = id(yellow);
-      if (co2 > 1100) color_co2 = id(orange);
-      if (co2 > 1400) color_co2 = id(red);
+      auto color_co2 = id(white);
+      if (co2 >    0) color_co2 = id(green);
+      if (co2 >  700) color_co2 = id(lime);
+      if (co2 >  900) color_co2 = id(yellow);
+      if (co2 > 1200) color_co2 = id(orange);
+      if (co2 > 1600) color_co2 = id(red);
+      if (co2 > 2000) color_co2 = id(purple);
 
-      auto color_voc = id(green);
-      if (voc >  200) color_voc = id(lime);
-      if (voc >  600) color_voc = id(yellow);
-      if (voc > 1000) color_voc = id(orange);
-      if (voc > 1500) color_voc = id(red);
+      auto color_voc = id(white);
+      if (voc >    0) color_voc = id(green);
+      if (voc >  150) color_voc = id(lime);
+      if (voc >  300) color_voc = id(yellow);
+      if (voc >  600) color_voc = id(orange);
+      if (voc > 1200) color_voc = id(red);
+      if (voc > 3000) color_voc = id(purple);
 
       auto cy = 0;
 

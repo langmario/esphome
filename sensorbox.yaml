@@ -256,12 +256,12 @@ display:
       if (co2 > 2000) color_co2 = id(purple);
 
       auto color_voc = id(white);
-      if (voc >    0) color_voc = id(green);
-      if (voc >  150) color_voc = id(lime);
-      if (voc >  300) color_voc = id(yellow);
+      if (voc >   0) color_voc = id(green);
+      if (voc >  200) color_voc = id(lime);
+      if (voc >  400) color_voc = id(yellow);
       if (voc >  600) color_voc = id(orange);
-      if (voc > 1200) color_voc = id(red);
-      if (voc > 3000) color_voc = id(purple);
+      if (voc > 1000) color_voc = id(red);
+      if (voc > 2500) color_voc = id(purple);
 
       auto cy = 0;
 

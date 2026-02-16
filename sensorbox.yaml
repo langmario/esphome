@@ -11,7 +11,8 @@ esp32:
   framework:
     type: esp-idf
 
-packages: !include common/base.yaml
+packages:
+  - !include common/base.yaml
 
 logger:
 api:

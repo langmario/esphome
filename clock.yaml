@@ -3,22 +3,11 @@ esphome:
   friendly_name: Clock
   name_add_mac_suffix: True
 
-esp8266:
-  board: d1_mini
+esp32:
+  board: seeed_xiao_esp32c3
 
 packages: !include common/base.yaml
 api:
-  services:
-    - service: timer_start
-      variables:
-        seconds: int
-      then:
-        - lambda: |-
-            id(timer_seconds_remaining) = seconds;
-    - service: timer_abort
-      then:
-        - lambda: |-
-            id(timer_seconds_remaining) = 0;
 captive_portal:
 
 ota:
@@ -35,59 +24,56 @@ wifi:
 globals:
   - id: identify_active
     type: bool
-  - id: timer_seconds_remaining
-    type: int
+    initial_value: "false"
 
-interval:
-  - interval: 1s
-    then:
-      - if:
-          condition:
-            lambda: return id(timer_seconds_remaining) > 0;
-          then:
-            - lambda: |-
-                id(timer_seconds_remaining)--;
-
-switch:
-  - platform: template
-    name: Night Mode
-    id: night_mode
-    icon: mdi:weather-night
-    optimistic: True
+spi:
+  clk_pin: GPIO8
+  mosi_pin: GPIO10
 
 font:
   - file: fonts/5x8.bdf
-    id: font_large
+    id: font_default
 
 time:
   - platform: sntp
-    timezone: CET-1CEST,M3.5.0,M10.5.0/3
-    id: source_time
-
-spi:
-  clk_pin: D6
-  mosi_pin: D8
+    timezone: Europe/Berlin
+    id: time_sntp
 
 display:
   - platform: max7219digit
-    id: max_display
-    cs_pin: D7
+    id: clock_display
+    cs_pin: GPIO20
     num_chips: 4
+    rotate_chip: 180
+    reverse_enable: True
     update_interval: 20ms
     lambda: |-
-      bool night = id(night_mode).state;
-      it.intensity(night ? 0 : 15);
+      auto t = id(time_sntp).now();
       if (id(identify_active)) {
+        it.turn_on_off(true);
+        it.intensity(15);
         it.filled_rectangle(0, 0, 32, 8);
-      } else if (id(timer_seconds_remaining) > 0) {
-        int minutes = id(timer_seconds_remaining) / 60;
-        int seconds = id(timer_seconds_remaining) % 60;
-        it.printf(4, 0, id(font_large), "%02d:%02d", minutes, seconds);
-      } else {
-        auto t = id(source_time).now();
-        bool showColon = t.second % 2 == 0 || night;
-        it.strftime(4, 0, id(font_large), showColon ? "%H:%M" : "%H %M", t);
+        return;
       }
+      it.turn_on_off(id(clock_light).current_values.is_on());
+      it.intensity((int)(id(clock_light).current_values.get_brightness() * 15));
+      it.strftime(4, 0, id(font_default), t.second % 2 == 0 ? "%H:%M" : "%H %M", t);
+
+output:
+  - platform: template
+    id: clock_light_output
+    type: float
+    write_action:
+      - lambda: ""
+
+light:
+  - platform: monochromatic
+    name: "Display"
+    output: clock_light_output
+    id: clock_light
+    default_transition_length: 400ms
+    icon: mdi:clock-digital
+    restore_mode: RESTORE_AND_ON
 
 button:
   - platform: template

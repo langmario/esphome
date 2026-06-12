@@ -249,21 +249,19 @@ display:
 
       // CO2 Scale
       auto color_co2 = id(white);
-      if (co2 >    0) color_co2 = id(green);   // Excellent air quality
-      if (co2 >  700) color_co2 = id(lime);    // Perfectly fine
-      if (co2 > 1000) color_co2 = id(yellow);  // Classic ventilation point
-      if (co2 > 1400) color_co2 = id(orange);  // Noticeably stale air
-      if (co2 > 1800) color_co2 = id(red);     // Potential for headaches
-      if (co2 > 2400) color_co2 = id(purple);  // Absolute no-go
+      if      (co2 <  600) color_co2 = id(green);
+      else if (co2 <  800) color_co2 = id(lime);
+      else if (co2 < 100) color_co2 = id(yellow);
+      else if (co2 < 1500) color_co2 = id(orange);
+      else if (co2 >= 1500) color_co2 = id(red);
 
       // TVOC Scale
       auto color_voc = id(white);
-      if (voc >    0) color_voc = id(green);   // No load
-      if (voc >  150) color_voc = id(lime);    // Normal indoor level
-      if (voc >  500) color_voc = id(yellow);  // First outgassings noticeable
-      if (voc > 1000) color_voc = id(orange);  // Distinct odor / Elevated load
-      if (voc > 2000) color_voc = id(red);     // Very stale / Unhealthy
-      if (voc > 3000) color_voc = id(purple);  // Extreme levels
+      if      (voc <  100) color_voc = id(green);
+      else if (voc <  300) color_voc = id(lime);
+      else if (voc <  500) color_voc = id(yellow);
+      else if (voc < 1000) color_voc = id(orange);
+      else if (voc >= 1000) color_voc = id(red);
 
       auto cy = 0;
 

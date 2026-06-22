@@ -161,15 +161,15 @@ color:
   - id: dark_gray
     hex: 555555
   - id: green
-    hex: 80FF70
+    hex: A1FFA4
   - id: lime
-    hex: C3FF60
+    hex: D7FF61
   - id: yellow
-    hex: FFE040
+    hex: FFF047
   - id: orange
-    hex: FF993D
+    hex: FFBC58
   - id: red
-    hex: FF3333
+    hex: FF0000
   - id: purple
     hex: FF33DD
 

@@ -68,11 +68,11 @@ binary_sensor:
     id: top_btn
     filters:
       - delayed_on: 10ms
-      - delayed_off: 10ms
+      - delayed_off: 20ms
     on_click:
       then:
         - lambda: |-
-            auto brightness = int(id(back_light).remote_values.get_brightness() * 255);
+            auto brightness = int(id(back_light).current_values.get_brightness() * 255);
             if (brightness > 128) {
               id(back_light).turn_on().set_brightness(0.5).perform();
             } else if (brightness > 64) {
@@ -82,6 +82,10 @@ binary_sensor:
             } else {
               id(back_light).turn_on().set_brightness(1.0).perform();
             }
+    on_double_click:
+      then:
+        - display.page.show_next: display_main
+        - component.update: display_main
 
 sensor:
   - platform: aht10
@@ -94,7 +98,6 @@ sensor:
     humidity:
       name: "Humidity"
       id: hum_aht20
-    update_interval: 10s
   - platform: bmp280_i2c
     address: 0x77
     i2c_id: i2c_main
@@ -106,7 +109,6 @@ sensor:
     pressure:
       name: "Pressure"
       id: pres_bmp280
-    update_interval: 10s
   - platform: scd4x
     #address: 0x62
     i2c_id: i2c_main
@@ -121,7 +123,6 @@ sensor:
       name: "SCD40 Humidity"
       id: hum_scd40
       internal: True
-    update_interval: 10s
   - platform: sgp30
     i2c_id: i2c_main
     address: 0x58
@@ -144,10 +145,21 @@ sensor:
             send_every: 1
             alpha: 0.2
     store_baseline: yes
-    update_interval: 10s
     compensation:
       humidity_source: hum_aht20
       temperature_source: temp_aht20
+  - platform: pmsx003
+    type: PMSX003
+    uart_id: uart_pms
+    pm_1_0:
+      name: PM1.0
+      id: pm1_0_pms
+    pm_2_5:
+      name: PM2.5
+      id: pm2_5_pms
+    pm_10_0:
+      name: PM10
+      id: pm10_0_pms
 #endregion SENSORS
 
 #region DISPLAY SETUP
@@ -174,34 +186,26 @@ color:
     hex: FF33DD
 
 font:
-  - file: "gfonts://Rubik@400"
-    id: font_labels
-    size: 14
+  - file: "gfonts://Montserrat@900"
+    id: font_value
+    size: 72
     bpp: 4
-    glyphs: [
-      "0","1","2","3","4","5","6","7","8","9", "µ", "³",  "/", "°", "%", ",", ".", "(", ")", "-", "_", ":", A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z," ",a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z
-      ]
-  - file: "gfonts://Rubik@400"
-    id: font_aside
-    size: 24
+    glyphs: ["0","1","2","3","4","5","6","7","8","9",".","-","n","a"]
+  - file: "gfonts://Montserrat@900"
+    id: font_value_small
+    size: 52
     bpp: 4
-    glyphs: [
-      "0","1","2","3","4","5","6","7","8","9",".","-"
-      ]
-  - file: "gfonts://Rubik@600"
-    id: font_values
-    size: 60
+    glyphs: ["0","1","2","3","4","5","6","7","8","9",".","-","n","a"]
+  - file: "gfonts://Montserrat@900"
+    id: font_value_huge
+    size: 90
     bpp: 4
-    glyphs: [
-      "0","1","2","3","4","5","6","7","8","9",".","-"
-      ]
-  - file: "gfonts://Orbitron@500"
-    id: font_headings
-    size: 26
+    glyphs: ["0","1","2","3","4","5","6","7","8","9",".","-","n","a"]
+  - file: "gfonts://Montserrat@600"
+    id: font_label
+    size: 20
     bpp: 4
-    glyphs: [
-      " ","2",A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z,a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z
-      ]
+    glyphs: [" ",".","0","1","2","5",A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z,a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z]
 
 psram:
   mode: quad
@@ -215,6 +219,7 @@ output:
 light:
   - platform: monochromatic
     output: backlight_pwm
+    icon: mdi:cellphone
     name: "Display"
     id: back_light
     restore_mode: ALWAYS_ON
@@ -223,6 +228,7 @@ light:
 #region DISPLAY
 display:
   - platform: ili9xxx
+    id: display_main
     model: ILI9341
     cs_pin: GPIO03
     dc_pin: GPIO04
@@ -232,64 +238,129 @@ display:
     color_order: bgr
     invert_colors: false
     color_palette: 8BIT
-    lambda: |-
-      it.fill(Color::BLACK);
-
-      auto w = it.get_width();
-      auto h = it.get_height();
-      auto offset_x = 10;
-      auto offset_y = 10;
-
-      // Get sensor values
-      float temperature = id(temp_aht20).state;
-      float humidity = id(hum_aht20).state;
-      float pressure = id(pres_bmp280).state;
-      auto co2 = id(co2_scd40).state;
-      auto voc = id(tvoc_sgp30).state;
-
-      // CO2 Scale
-      auto color_co2 = id(white);
-      if      (co2 <  600) color_co2 = id(green);
-      else if (co2 <  800) color_co2 = id(lime);
-      else if (co2 < 100) color_co2 = id(yellow);
-      else if (co2 < 1500) color_co2 = id(orange);
-      else if (co2 >= 1500) color_co2 = id(red);
-
-      // TVOC Scale
-      auto color_voc = id(white);
-      if      (voc <  100) color_voc = id(green);
-      else if (voc <  300) color_voc = id(lime);
-      else if (voc <  500) color_voc = id(yellow);
-      else if (voc < 1000) color_voc = id(orange);
-      else if (voc >= 1000) color_voc = id(red);
-
-      auto cy = 0;
-
-      // Draw top row with temp, hum, pressure
-      it.printf( 60, 24, id(font_aside), gray, TextAlign::BOTTOM_RIGHT, "%.1f", temperature);
-      it.printf( 63, 14, id(font_labels), dark_gray, TextAlign::BOTTOM_LEFT, "°C");
-
-      it.printf(125, 24, id(font_aside), gray, TextAlign::BOTTOM_RIGHT, "%.0f", humidity);
-      it.printf(127, 14, id(font_labels), dark_gray, TextAlign::BOTTOM_LEFT, "%c", '%');
-
-      it.printf(205, 24, id(font_aside), gray, TextAlign::BOTTOM_RIGHT, "%.0f", pressure);
-      it.printf(210, 14, id(font_labels), dark_gray, TextAlign::BOTTOM_LEFT, "hPa");
-      cy += 26;
-
-      // Draw rows with air quality readings
-      auto draw_row = [&](int &cy, const char* title, const char* unit, const char* format, float value, const Color &value_color) {
-        it.line(0, cy, w, cy, dark_gray);
-        cy += offset_y;
-        it.print(offset_x, cy - 8, id(font_headings), light_gray, TextAlign::TOP_LEFT, title);
-        it.print(w - offset_x, cy + 6, id(font_labels), gray, TextAlign::TOP_RIGHT, unit);
-        it.printf(w - offset_x, cy + 16, id(font_values), value_color, TextAlign::TOP_RIGHT, format, value);
-        cy += 74 + offset_y;
-      };
-
-      draw_row(cy, "CO2", "ppm", "%.0f", co2, color_co2);
-      draw_row(cy, "VOC", "ppb", "%.0f", voc, color_voc);
-      draw_row(cy, "Temp", "°C", "%.1f", temperature, white);
     dimensions:
       height: 320
       width: 240
+    pages:
+      - id: page_main
+        lambda: |-
+          // Get sensor values
+          float temperature = id(temp_aht20).state;
+          float humidity = id(hum_aht20).state;
+          float pressure = id(pres_bmp280).state;
+          auto co2 = id(co2_scd40).state;
+          auto tvoc = id(tvoc_sgp30).state;
+          auto pm1_0 = id(pm1_0_pms).state;
+          auto pm2_5 = id(pm2_5_pms).state;
+          auto pm10_0 = id(pm10_0_pms).state;
+
+          // CO2 Scale
+          auto color_co2 = id(white);
+          if      (co2 <   600) color_co2 = id(green);
+          else if (co2 <   800) color_co2 = id(lime);
+          else if (co2 <  1000) color_co2 = id(yellow);
+          else if (co2 <  1500) color_co2 = id(orange);
+          else if (co2 >= 1500) color_co2 = id(red);
+
+          // TVOC Scale
+          auto color_tvoc = id(white);
+          if      (tvoc <   100) color_tvoc = id(green);
+          else if (tvoc <   300) color_tvoc = id(lime);
+          else if (tvoc <   500) color_tvoc = id(yellow);
+          else if (tvoc <  1000) color_tvoc = id(orange);
+          else if (tvoc >= 1000) color_tvoc = id(red);
+
+          // PM1.0 Scale
+          auto color_pm1_0 = id(white);
+          if      (pm1_0 <   5) color_pm1_0 = id(green);
+          else if (pm1_0 <  15) color_pm1_0 = id(lime);
+          else if (pm1_0 <  25) color_pm1_0 = id(yellow);
+          else if (pm1_0 <  35) color_pm1_0 = id(orange);
+          else if (pm1_0 >= 35) color_pm1_0 = id(red);
+
+          // PM2.5 Scale
+          auto color_pm2_5 = id(white);
+          if      (pm2_5 <   5) color_pm2_5 = id(green);
+          else if (pm2_5 <  15) color_pm2_5 = id(lime);
+          else if (pm2_5 <  25) color_pm2_5 = id(yellow);
+          else if (pm2_5 <  35) color_pm2_5 = id(orange);
+          else if (pm2_5 >= 35) color_pm2_5 = id(red);
+
+          // PM10 Scale
+          auto color_pm10_0 = id(white);
+          if      (pm10_0 <   15) color_pm10_0 = id(green);
+          else if (pm10_0 <   45) color_pm10_0 = id(lime);
+          else if (pm10_0 <   75) color_pm10_0 = id(yellow);
+          else if (pm10_0 <  150) color_pm10_0 = id(orange);
+          else if (pm10_0 >= 150) color_pm10_0 = id(red);
+
+          auto w = it.get_width();
+          auto h = it.get_height();
+          auto offset_y = 5;
+
+          auto draw_divider = [&](int &y) {
+            y += offset_y;
+            it.line(10, y, w - 10, y, dark_gray);
+            y += offset_y;
+          };
+
+          auto draw_main = [&](int &y) {
+            auto col = w / 1;
+            auto h_label = id(font_label)->get_height();
+            auto h_value = id(font_value)->get_height();
+
+            it.print(0.5 * col, y, id(font_label), light_gray, TextAlign::TOP_CENTER, "Temp");
+            it.printf(0.5 * col, y + h_label, id(font_value), white, TextAlign::TOP_CENTER, "%.1f", temperature);
+
+            y += h_label + h_value;
+          };
+
+          auto draw_header = [&](int &y) {
+            auto col = w / 2;
+            auto h_label = id(font_label)->get_height();
+            auto h_value = id(font_value_small)->get_height();
+
+            it.print(0.5 * col, y, id(font_label), light_gray, TextAlign::TOP_CENTER, "CO2");
+            it.printf(0.5 * col, y + h_label, id(font_value_small), color_co2, TextAlign::TOP_CENTER, "%.0f", co2);
+
+            it.print(1.5 * col, y, id(font_label), light_gray, TextAlign::TOP_CENTER, "VOC");
+            it.printf(1.5 * col, y + h_label, id(font_value_small), color_tvoc, TextAlign::TOP_CENTER, "%.0f", tvoc);
+
+            y += h_label + h_value;
+          };
+
+          auto draw_footer = [&](int &y) {
+            auto col = w / 3;
+            auto h_label = id(font_label)->get_height();
+            auto h_value = id(font_value_small)->get_height();
+
+            it.print(0.5 * col, y, id(font_label), light_gray, TextAlign::TOP_CENTER, "PM10");
+            it.printf(0.5 * col, y + h_label, id(font_value_small), color_pm10_0, TextAlign::TOP_CENTER, "%.0f", pm10_0);
+
+            it.print(1.5 * col, y, id(font_label), light_gray, TextAlign::TOP_CENTER, "PM2.5");
+            it.printf(1.5 * col, y + h_label, id(font_value_small), color_pm2_5, TextAlign::TOP_CENTER, "%.0f", pm2_5);
+
+            it.print(2.5 * col, y, id(font_label), light_gray, TextAlign::TOP_CENTER, "PM1");
+            it.printf(2.5 * col, y + h_label, id(font_value_small), color_pm1_0, TextAlign::TOP_CENTER, "%.0f", pm1_0);
+
+            y += h_label + h_value;
+          };
+
+          auto cy = 8;
+
+          draw_header(cy);
+          draw_divider(cy);
+          draw_main(cy);
+          draw_divider(cy);
+          draw_footer(cy);
+      - id: page_screensaver
+        lambda: |-
+          auto w = it.get_width();
+          auto h = it.get_height();
+
+          // Get sensor values
+          auto temperature = id(temp_aht20).state;
+          auto co2 = id(co2_scd40).state;
+
+          it.printf(w / 2, h / 2, id(font_value_huge), id(white), TextAlign::CENTER, "%.1f", temperature);
 #endregion DISPLAY

@@ -154,6 +154,12 @@ sensor:
     pm_10_0:
       name: PM10
       id: pm10_0_pms
+  - platform: aqi
+    name: Air Quality Index
+    pm_2_5: pm2_5_pms
+    pm_10_0: pm10_0_pms
+    calculation_type: CAQI
+
 #endregion SENSORS
 
 #region DISPLAY SETUP
@@ -182,17 +188,12 @@ color:
 font:
   - file: "gfonts://Montserrat@900"
     id: font_value
-    size: 72
+    size: 80
     bpp: 4
     glyphs: ["0","1","2","3","4","5","6","7","8","9",".","-","n","a"]
-  - file: "gfonts://Montserrat@900"
-    id: font_value_small
-    size: 52
-    bpp: 4
-    glyphs: ["0","1","2","3","4","5","6","7","8","9",".","-","n","a"]
-  - file: "gfonts://Montserrat@900"
-    id: font_value_huge
-    size: 90
+  - file: "gfonts://Montserrat@800"
+    id: font_value_secondary
+    size: 48
     bpp: 4
     glyphs: ["0","1","2","3","4","5","6","7","8","9",".","-","n","a"]
   - file: "gfonts://Montserrat@600"
@@ -313,13 +314,13 @@ display:
           auto draw_header = [&](int &y) {
             auto col = w / 2;
             auto h_label = id(font_label)->get_height();
-            auto h_value = id(font_value_small)->get_height();
+            auto h_value = id(font_value_secondary)->get_height();
 
-            it.print(0.5 * col, y, id(font_label), light_gray, TextAlign::TOP_CENTER, "CO2");
-            it.printf(0.5 * col, y + h_label, id(font_value_small), color_co2, TextAlign::TOP_CENTER, "%.0f", co2);
+            it.print(0.5 * col, y, id(font_label), light_gray, TextAlign::TOP_CENTER, "VOC");
+            it.printf(0.5 * col, y + h_label, id(font_value_secondary), color_tvoc, TextAlign::TOP_CENTER, "%.0f", tvoc);
 
-            it.print(1.5 * col, y, id(font_label), light_gray, TextAlign::TOP_CENTER, "VOC");
-            it.printf(1.5 * col, y + h_label, id(font_value_small), color_tvoc, TextAlign::TOP_CENTER, "%.0f", tvoc);
+            it.print(1.5 * col, y, id(font_label), light_gray, TextAlign::TOP_CENTER, "CO2");
+            it.printf(1.5 * col, y + h_label, id(font_value_secondary), color_co2, TextAlign::TOP_CENTER, "%.0f", co2);
 
             y += h_label + h_value;
           };
@@ -327,16 +328,16 @@ display:
           auto draw_footer = [&](int &y) {
             auto col = w / 3;
             auto h_label = id(font_label)->get_height();
-            auto h_value = id(font_value_small)->get_height();
+            auto h_value = id(font_value_secondary)->get_height();
 
             it.print(0.5 * col, y, id(font_label), light_gray, TextAlign::TOP_CENTER, "PM10");
-            it.printf(0.5 * col, y + h_label, id(font_value_small), color_pm10_0, TextAlign::TOP_CENTER, "%.0f", pm10_0);
+            it.printf(0.5 * col, y + h_label, id(font_value_secondary), color_pm10_0, TextAlign::TOP_CENTER, "%.0f", pm10_0);
 
             it.print(1.5 * col, y, id(font_label), light_gray, TextAlign::TOP_CENTER, "PM2.5");
-            it.printf(1.5 * col, y + h_label, id(font_value_small), color_pm2_5, TextAlign::TOP_CENTER, "%.0f", pm2_5);
+            it.printf(1.5 * col, y + h_label, id(font_value_secondary), color_pm2_5, TextAlign::TOP_CENTER, "%.0f", pm2_5);
 
             it.print(2.5 * col, y, id(font_label), light_gray, TextAlign::TOP_CENTER, "PM1");
-            it.printf(2.5 * col, y + h_label, id(font_value_small), color_pm1_0, TextAlign::TOP_CENTER, "%.0f", pm1_0);
+            it.printf(2.5 * col, y + h_label, id(font_value_secondary), color_pm1_0, TextAlign::TOP_CENTER, "%.0f", pm1_0);
 
             y += h_label + h_value;
           };
@@ -357,5 +358,5 @@ display:
           auto temperature = id(temp_aht20).state;
           auto co2 = id(co2_scd40).state;
 
-          it.printf(w / 2, h / 2, id(font_value_huge), id(white), TextAlign::CENTER, "%.1f", temperature);
+          it.printf(w / 2, h / 2, id(font_value), id(white), TextAlign::CENTER, "%.1f", temperature);
 #endregion DISPLAY

@@ -56,6 +56,21 @@ i2c:
     scan: true
     id: i2c_2
 
+script:
+  - id: cycle_backlight_brightness
+    then:
+      - lambda: |-
+          auto brightness = int(id(back_light).current_values.get_brightness() * 255);
+          if (brightness > 128) {
+            id(back_light).turn_on().set_brightness(0.5).perform();
+          } else if (brightness > 64) {
+            id(back_light).turn_on().set_brightness(0.25).perform();
+          } else if (brightness > 16) {
+            id(back_light).turn_on().set_brightness(0.05).perform();
+          } else {
+            id(back_light).turn_on().set_brightness(1.0).perform();
+          }
+
 #region SENSORS
 binary_sensor:
   - platform: gpio
@@ -69,75 +84,53 @@ binary_sensor:
     filters:
       - delayed_on: 10ms
       - delayed_off: 20ms
-    on_click:
-      then:
-        - lambda: |-
-            auto brightness = int(id(back_light).current_values.get_brightness() * 255);
-            if (brightness > 128) {
-              id(back_light).turn_on().set_brightness(0.5).perform();
-            } else if (brightness > 64) {
-              id(back_light).turn_on().set_brightness(0.25).perform();
-            } else if (brightness > 16) {
-              id(back_light).turn_on().set_brightness(0.05).perform();
-            } else {
-              id(back_light).turn_on().set_brightness(1.0).perform();
-            }
-    on_double_click:
-      then:
-        - display.page.show_next: display_main
-        - component.update: display_main
+    on_multi_click:
+      - timing:
+          - ON for at most 1s
+          - OFF for at least 350ms
+        then:
+          - script.execute: cycle_backlight_brightness
+      - timing:
+          - ON for at most 1s
+          - OFF for at most 350ms
+          - ON for at most 1s
+          - OFF for at least 10ms
+        then:
+          - display.page.show_next: display_main
+          - component.update: display_main
 
 sensor:
   - platform: aht10
-    #address: 0x38
     i2c_id: i2c_main
     variant: AHT20
+    update_interval: 30s
     temperature:
-      name: "Temperature"
+      name: Temperature
       id: temp_aht20
     humidity:
-      name: "Humidity"
+      name: Humidity
       id: hum_aht20
   - platform: bmp280_i2c
     address: 0x77
     i2c_id: i2c_main
-    temperature:
-      name: "BMP280 Temperature"
-      id: temp_bmp280
-      oversampling: 16x
-      internal: True
+    update_interval: 30s
     pressure:
-      name: "Pressure"
+      name: Pressure
       id: pres_bmp280
   - platform: scd4x
-    #address: 0x62
     i2c_id: i2c_main
+    update_interval: 60s
     co2:
-      name: "CO2"
+      name: CO2
       id: co2_scd40
-    temperature:
-      name: "SCD40 Temperature"
-      id: temp_scd40
-      internal: True
-    humidity:
-      name: "SCD40 Humidity"
-      id: hum_scd40
-      internal: True
   - platform: sgp30
     i2c_id: i2c_main
     address: 0x58
-    eco2:
-      name: "eCO2"
-      id: eco2_sgp30
-      accuracy_decimals: 0
-      filters:
-        - exponential_moving_average:
-            send_every: 1
-            alpha: 0.2
+    update_interval: 60s
     tvoc:
-      name: "TVOC"
-      state_class: "measurement"
-      unit_of_measurement: "ppb"
+      name: TVOC
+      state_class: measurement
+      unit_of_measurement: ppb
       id: tvoc_sgp30
       accuracy_decimals: 1
       filters:
@@ -151,6 +144,7 @@ sensor:
   - platform: pmsx003
     type: PMSX003
     uart_id: uart_pms
+    update_interval: 3min
     pm_1_0:
       name: PM1.0
       id: pm1_0_pms

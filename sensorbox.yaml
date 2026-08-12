@@ -221,20 +221,21 @@ light:
 
 #region DISPLAY
 display:
-  - platform: ili9xxx
+  - platform: mipi_spi
     id: display_main
     model: ILI9341
     cs_pin: GPIO03
     dc_pin: GPIO04
     reset_pin: GPIO06
-    transform:
-      mirror_y: true
-    color_order: bgr
-    invert_colors: false
-    color_palette: 8BIT
     dimensions:
       height: 320
       width: 240
+    transform:
+      mirror_x: false
+      mirror_y: true
+      swap_xy: false
+    color_order: bgr
+    invert_colors: false
     pages:
       - id: page_main
         lambda: |-

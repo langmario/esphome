@@ -144,16 +144,13 @@ sensor:
     i2c_id: i2c_main
     address: 0x58
     update_interval: 60s
+    store_baseline: true
     tvoc:
       id: sgp30_tvoc
       name: TVOC
       state_class: measurement
       unit_of_measurement: ppb
       accuracy_decimals: 1
-    store_baseline: true
-    tvoc_baseline:
-      id: tvoc_baseline
-      name: TVOC Baseline
     compensation:
       humidity_source: aht20_hum
       temperature_source: aht20_temp

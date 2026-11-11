@@ -308,13 +308,13 @@ display:
             auto height_value = id(font_value_secondary)->get_height();
 
             it.print(0.5 * col, y, id(font_label), id(light_gray), TextAlign::TOP_CENTER, "PM10");
-            it.printf(0.5 * col, y + height_label, id(font_value_secondary), color_pm10, TextAlign::TOP_CENTER, "%.0f", pm10);
+            it.printf(0.5 * col, y + height_label, id(font_value_secondary), color_pm10, TextAlign::TOP_CENTER, isnan(pm10) ? "-" : "%.0f", pm10);
 
             it.print(1.5 * col, y, id(font_label), id(light_gray), TextAlign::TOP_CENTER, "PM2.5");
-            it.printf(1.5 * col, y + height_label, id(font_value_secondary), color_pm2_5, TextAlign::TOP_CENTER, "%.0f", pm2_5);
+            it.printf(1.5 * col, y + height_label, id(font_value_secondary), color_pm2_5, TextAlign::TOP_CENTER, isnan(pm2_5) ? "-" : "%.0f", pm2_5);
 
             it.print(2.5 * col, y, id(font_label), id(light_gray), TextAlign::TOP_CENTER, "PM1");
-            it.printf(2.5 * col, y + height_label, id(font_value_secondary), color_pm1, TextAlign::TOP_CENTER, "%.0f", pm1);
+            it.printf(2.5 * col, y + height_label, id(font_value_secondary), color_pm1, TextAlign::TOP_CENTER, isnan(pm1) ? "-" : "%.0f", pm1);
 
             y += height_label + height_value;
           };

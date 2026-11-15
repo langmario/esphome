@@ -283,7 +283,7 @@ display:
             auto height_value = id(font_value_primary)->get_height();
 
             it.print(0.5 * col, y, id(font_label), id(light_gray), TextAlign::TOP_CENTER, "Temp");
-            it.printf(0.5 * col, y + height_label, id(font_value_primary), id(white), TextAlign::TOP_CENTER, "%.1f", temperature);
+            it.printf(0.5 * col, y + height_label, id(font_value_primary), id(white), TextAlign::TOP_CENTER, isnan(temperature) ? "-" : "%.1f", temperature);
 
             y += height_label + height_value;
           };
@@ -294,10 +294,10 @@ display:
             auto height_value = id(font_value_secondary)->get_height();
 
             it.print(0.5 * col, y, id(font_label), id(light_gray), TextAlign::TOP_CENTER, "VOC");
-            it.printf(0.5 * col, y + height_label, id(font_value_secondary), color_tvoc, TextAlign::TOP_CENTER, "%.0f", tvoc);
+            it.printf(0.5 * col, y + height_label, id(font_value_secondary), color_tvoc, TextAlign::TOP_CENTER, isnan(tvoc) ? "-" : "%.0f", tvoc);
 
             it.print(1.5 * col, y, id(font_label), id(light_gray), TextAlign::TOP_CENTER, "CO2");
-            it.printf(1.5 * col, y + height_label, id(font_value_secondary), color_co2, TextAlign::TOP_CENTER, "%.0f", co2);
+            it.printf(1.5 * col, y + height_label, id(font_value_secondary), color_co2, TextAlign::TOP_CENTER, isnan(co2) ? "-" : "%.0f", co2);
 
             y += height_label + height_value;
           };
